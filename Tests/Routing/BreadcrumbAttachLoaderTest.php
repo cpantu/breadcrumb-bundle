@@ -2,35 +2,27 @@
 
 namespace Thormeier\BreadcrumbBundle\Tests\Routing;
 
+use PHPUnit\Framework\TestCase;
+use Symfony\Component\Config\Loader\LoaderInterface;
 use Symfony\Component\Routing\Route;
 use Symfony\Component\Routing\RouteCollection;
-use Thormeier\BreadcrumbBundle\Model\Breadcrumb;
 use Thormeier\BreadcrumbBundle\Routing\BreadcrumbAttachLoader;
 
 /**
  * Tests the router loader that hooks in and attaches the breadcrumb options to _breadcrumb defaults
  */
-class BreadcrumbAttachLoaderTest extends \PHPUnit_Framework_TestCase
+class BreadcrumbAttachLoaderTest extends TestCase
 {
-    /**
-     * @var BreadcrumbAttachLoader
-     */
-    private $loader;
+    private BreadcrumbAttachLoader $loader;
 
-    /**
-     * @var \PHPUnit_Framework_MockObject_MockObject|\Symfony\Component\Config\Loader\LoaderResolverInterface
-     */
-    private $delegatingLoader;
+    private LoaderInterface $delegatingLoader;
 
     /**
      * Set up mocks for the whole router loader
      */
-    public function setUp()
+    protected function setUp(): void
     {
-        /** @var \PHPUnit_Framework_MockObject_MockObject|\Symfony\Component\Config\Loader\LoaderInterface $delegatingLoader */
-        $delegatingLoader = $this->getMockBuilder('Symfony\Component\Config\Loader\LoaderInterface')
-            ->setMethods(array('load'))
-            ->getMockForAbstractClass();
+        $delegatingLoader = $this->createMock(LoaderInterface::class);
 
         $this->delegatingLoader = $delegatingLoader;
         $this->loader = new BreadcrumbAttachLoader($this->delegatingLoader);
@@ -39,104 +31,104 @@ class BreadcrumbAttachLoaderTest extends \PHPUnit_Framework_TestCase
     /**
      * Test the loading and set up of multiple breadcrumbs on mutiple routes
      */
-    public function testLoad()
+    public function testLoad(): void
     {
         $collection = new RouteCollection();
 
-        $route1Crumbs = array(
-            'breadcrumb' => array(
+        $route1Crumbs = [
+            'breadcrumb' => [
                 'label' => 'Foo',
                 'parent_route' => 'bar',
-            )
-        );
-        $route2Crumbs = array(
-            'breadcrumb' => array(
+            ]
+        ];
+        $route2Crumbs = [
+            'breadcrumb' => [
                 'label' => 'Bar',
-            )
-        );
+            ]
+        ];
 
-        $collection->add('foo', new Route('/foo', array(), array(), $route1Crumbs));
-        $collection->add('bar', new Route('/bar', array(), array(), $route2Crumbs));
+        $collection->add('foo', new Route('/foo', [], [], $route1Crumbs));
+        $collection->add('bar', new Route('/bar', [], [], $route2Crumbs));
 
         $this->delegatingLoader->expects($this->once())
             ->method('load')
-            ->will($this->returnValue($collection));
+            ->willReturn($collection);
 
         /** @var RouteCollection $result */
         $result = $this->loader->load('foobar');
 
         $this->assertCount(2, $result->all());
         $this->assertCount(2, $result->get('foo')->getDefault('_breadcrumbs'));
-        $this->assertEquals(array(
-            array('label' => 'Bar', 'route' => 'bar'),
-            array('label' => 'Foo', 'route' => 'foo'),
-        ), $result->get('foo')->getDefault('_breadcrumbs'));
-        $this->assertEquals(array('label' => 'Bar', 'route' => 'bar',), $result->get('foo')->getDefault('_breadcrumbs')[0]);
-        $this->assertEquals(array('label' => 'Foo', 'route' => 'foo',), $result->get('foo')->getDefault('_breadcrumbs')[1]);
+        $this->assertEquals([
+            ['label' => 'Bar', 'route' => 'bar'],
+            ['label' => 'Foo', 'route' => 'foo'],
+        ], $result->get('foo')->getDefault('_breadcrumbs'));
+        $this->assertEquals(['label' => 'Bar', 'route' => 'bar'], $result->get('foo')->getDefault('_breadcrumbs')[0]);
+        $this->assertEquals(['label' => 'Foo', 'route' => 'foo'], $result->get('foo')->getDefault('_breadcrumbs')[1]);
 
         $this->assertCount(1, $result->get('bar')->getDefault('_breadcrumbs'));
-        $this->assertEquals(array('label' => 'Bar', 'route' => 'bar',), $result->get('bar')->getDefault('_breadcrumbs')[0]);
+        $this->assertEquals(['label' => 'Bar', 'route' => 'bar'], $result->get('bar')->getDefault('_breadcrumbs')[0]);
     }
 
     /**
      * Test exception if one breadcrumb is missing its label
      */
-    public function testMalformedBreadcrumb()
+    public function testMalformedBreadcrumb(): void
     {
-        $route1Crumbs = array(
-            'breadcrumb' => array(
+        $route1Crumbs = [
+            'breadcrumb' => [
                 // label missing
                 'parent_route' => 'bar',
-            )
-        );
-        $route2Crumbs = array(
-            'breadcrumb' => array(
+            ]
+        ];
+        $route2Crumbs = [
+            'breadcrumb' => [
                 'label' => 'Bar',
-            )
-        );
+            ]
+        ];
 
         $collection = new RouteCollection();
-        $collection->add('foo', new Route('/foo', array(), array(), $route1Crumbs));
-        $collection->add('bar', new Route('/bar', array(), array(), $route2Crumbs));
+        $collection->add('foo', new Route('/foo', [], [], $route1Crumbs));
+        $collection->add('bar', new Route('/bar', [], [], $route2Crumbs));
 
         $this->delegatingLoader->expects($this->once())
             ->method('load')
-            ->will($this->returnValue($collection));
+            ->willReturn($collection);
 
-        $this->setExpectedException('\InvalidArgumentException');
+        $this->expectException(\InvalidArgumentException::class);
         $this->loader->load('foobar');
     }
 
     /**
      * Test behaviour of loader when breadcrumbs are configured circular (a -> b -> a etc.)
      */
-    public function testCircularBreadcrumbs()
+    public function testCircularBreadcrumbs(): void
     {
         $routeFooName = 'foo';
         $routeBarName = 'bar';
 
-        $routeFooCrumbs = array(
-            'breadcrumb' => array(
+        $routeFooCrumbs = [
+            'breadcrumb' => [
                 'label' => 'Foo',
                 'parent_route' => $routeBarName,
-            ),
-        );
-        $routeBarCrumbs = array(
-            'breadcrumb' => array(
+            ],
+        ];
+        $routeBarCrumbs = [
+            'breadcrumb' => [
                 'label' => 'Bar',
                 'parent_route' => $routeFooName,
-            ),
-        );
+            ],
+        ];
 
         $collection = new RouteCollection();
-        $collection->add($routeFooName, new Route('/foo', array(), array(), $routeFooCrumbs));
-        $collection->add($routeBarName, new Route('/bar', array(), array(), $routeBarCrumbs));
+        $collection->add($routeFooName, new Route('/foo', [], [], $routeFooCrumbs));
+        $collection->add($routeBarName, new Route('/bar', [], [], $routeBarCrumbs));
 
         $this->delegatingLoader->expects($this->once())
             ->method('load')
-            ->will($this->returnValue($collection));
+            ->willReturn($collection);
 
-        $this->setExpectedException('\LogicException');
+        $this->expectException(\LogicException::class);
         $this->loader->load('foobar');
     }
 }

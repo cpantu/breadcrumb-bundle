@@ -2,9 +2,8 @@
 
 namespace Thormeier\BreadcrumbBundle\Provider;
 
-use Symfony\Component\HttpKernel\Event\GetResponseEvent;
+use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
-use Thormeier\BreadcrumbBundle\Model\Breadcrumb;
 use Thormeier\BreadcrumbBundle\Model\BreadcrumbCollectionInterface;
 use Thormeier\BreadcrumbBundle\Model\BreadcrumbInterface;
 
@@ -13,31 +12,15 @@ use Thormeier\BreadcrumbBundle\Model\BreadcrumbInterface;
  */
 class BreadcrumbProvider implements BreadcrumbProviderInterface
 {
-    /**
-     * @var array
-     */
-    private $requestBreadcrumbConfig;
+    private ?array $requestBreadcrumbConfig = null;
 
-    /**
-     * @var BreadcrumbCollectionInterface
-     */
-    private $breadcrumbs = null;
+    private ?BreadcrumbCollectionInterface $breadcrumbs = null;
 
-    /**
-     * @var string
-     */
-    private $modelClass;
+    private string $modelClass;
 
-    /**
-     * @var string
-     */
-    private $collectionClass;
+    private string $collectionClass;
 
-    /**
-     * @param string $modelClass
-     * @param string $collectionClass
-     */
-    public function __construct($modelClass, $collectionClass)
+    public function __construct(string $modelClass, string $collectionClass)
     {
         $this->modelClass = $modelClass;
         $this->collectionClass = $collectionClass;
@@ -45,20 +28,18 @@ class BreadcrumbProvider implements BreadcrumbProviderInterface
 
     /**
      * Listen to the kernelRequest event to get the breadcrumb config from the request
-     *
-     * @param GetResponseEvent $event
      */
-    public function onKernelRequest(GetResponseEvent $event)
+    public function onKernelRequest(RequestEvent $event): void
     {
-        if ($event->getRequestType() === HttpKernelInterface::MASTER_REQUEST) {
-            $this->requestBreadcrumbConfig = $event->getRequest()->attributes->get('_breadcrumbs', array());
+        if ($event->getRequestType() === HttpKernelInterface::MAIN_REQUEST) {
+            $this->requestBreadcrumbConfig = $event->getRequest()->attributes->get('_breadcrumbs', []);
         }
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getBreadcrumbs()
+    public function getBreadcrumbs(): BreadcrumbCollectionInterface
     {
         if (null === $this->breadcrumbs) {
             $this->breadcrumbs = $this->generateBreadcrumbCollectionFromRequest();
@@ -70,13 +51,9 @@ class BreadcrumbProvider implements BreadcrumbProviderInterface
     /**
      * Convenience method to get an entry from the breadcrumb list of the current requests route.
      *
-     * @param string $route
-     *
-     * @return BreadcrumbInterface|null
-     *
      * @see BreadcrumbCollection::getBreadcrumbByRoute
      */
-    public function getBreadcrumbByRoute($route)
+    public function getBreadcrumbByRoute(string $route): ?BreadcrumbInterface
     {
         return $this->getBreadcrumbs()->getBreadcrumbByRoute($route);
     }
@@ -84,10 +61,8 @@ class BreadcrumbProvider implements BreadcrumbProviderInterface
     /**
      * Generates an instance of an implementation of BreadcrumbCollectionInterface,
      * based on the breadcrumb information given by the SF Request
-     *
-     * @return BreadcrumbCollectionInterface
      */
-    private function generateBreadcrumbCollectionFromRequest()
+    private function generateBreadcrumbCollectionFromRequest(): BreadcrumbCollectionInterface
     {
         /** @var BreadcrumbCollectionInterface $collection */
         $collection = new $this->collectionClass();

@@ -2,51 +2,43 @@
 
 namespace Thormeier\BreadcrumbBundle\Tests\Twig;
 
+use PHPUnit\Framework\TestCase;
 use Thormeier\BreadcrumbBundle\Model\BreadcrumbCollection;
 use Thormeier\BreadcrumbBundle\Provider\BreadcrumbProvider;
 use Thormeier\BreadcrumbBundle\Twig\BreadcrumbExtension;
+use Twig\Environment;
 
 /**
  * Test for twig extension
  */
-class BreadcrumbExtensionTest extends \PHPUnit_Framework_TestCase
+class BreadcrumbExtensionTest extends TestCase
 {
-    /**
-     * @var string dummy template name
-     */
-    private $template = 'foo';
+    private string $template = 'foo';
 
-    /**
-     * @var array Dummy crumb data
-     */
-    private $crumbs = array();
+    private array $crumbs = [];
 
-    /**
-     * @var string Dummy string that functions as rendered template
-     */
-    private $renderedTemplate = 'bar';
+    private string $renderedTemplate = 'bar';
 
     /**
      * Test rendering call of breadcrumb extension
      */
-    public function testRenderBreadcrumbs()
+    public function testRenderBreadcrumbs(): void
     {
-        $twigEnv = $this->getMockBuilder('\Twig_Environment')
+        $twigEnv = $this->getMockBuilder(Environment::class)
             ->disableOriginalConstructor()
             ->getMock();
 
         $twigEnv->expects($this->once())
             ->method('render')
-            ->will($this->returnCallback(array($this, 'renderCallback')));
+            ->willReturnCallback([$this, 'renderCallback']);
 
-        /** @var \PHPUnit_FrameWork_MockObject_MockObject|BreadcrumbProvider $provider */
-        $provider = $this->getMockBuilder('\Thormeier\BreadcrumbBundle\Provider\BreadcrumbProvider')
+        $provider = $this->getMockBuilder(BreadcrumbProvider::class)
             ->disableOriginalConstructor()
             ->getMock();
 
         $provider->expects($this->once())
             ->method('getBreadcrumbs')
-            ->will($this->returnValue(new BreadcrumbCollection()));
+            ->willReturn(new BreadcrumbCollection());
 
         $extension = new BreadcrumbExtension($provider, $this->template);
 
@@ -55,13 +47,8 @@ class BreadcrumbExtensionTest extends \PHPUnit_Framework_TestCase
 
     /**
      * Callback of twigEnv->render
-     *
-     * @param string $template
-     * @param array  $templateArgs
-     *
-     * @return string
      */
-    public function renderCallback($template, array $templateArgs)
+    public function renderCallback(string $template, array $templateArgs): string
     {
         $this->assertEquals($this->template, $template);
         $this->assertArrayHasKey('breadcrumbs', $templateArgs);

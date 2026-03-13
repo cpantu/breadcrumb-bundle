@@ -2,6 +2,7 @@
 
 namespace Thormeier\BreadcrumbBundle\Tests\Model;
 
+use PHPUnit\Framework\TestCase;
 use Thormeier\BreadcrumbBundle\Model\Breadcrumb;
 use Thormeier\BreadcrumbBundle\Model\BreadcrumbCollection;
 
@@ -10,17 +11,17 @@ use Thormeier\BreadcrumbBundle\Model\BreadcrumbCollection;
  *
  * Test array logic of collection
  */
-class BreadcrumbCollectionTest extends \PHPUnit_Framework_TestCase
+class BreadcrumbCollectionTest extends TestCase
 {
     /**
      * Test normal adding of breadcrumbs
      */
-    public function testAddBreadcrumb()
+    public function testAddBreadcrumb(): void
     {
         $breadcrumbA = new Breadcrumb('foo', 'bar');
         $breadcrumbB = new Breadcrumb('bar', 'baz');
 
-        $expected = array($breadcrumbA, $breadcrumbB);
+        $expected = [$breadcrumbA, $breadcrumbB];
 
         $collection = new BreadcrumbCollection();
         $collection->addBreadcrumb($breadcrumbA)->addBreadcrumb($breadcrumbB);
@@ -31,13 +32,13 @@ class BreadcrumbCollectionTest extends \PHPUnit_Framework_TestCase
     /**
      * Test adding of breadcrumb before another known one
      */
-    public function testAddBeforeCrumb()
+    public function testAddBeforeCrumb(): void
     {
         $breadcrumbA = new Breadcrumb('foo', 'bar');
         $breadcrumbB = new Breadcrumb('bar', 'baz');
         $breadcrumbC = new Breadcrumb('baz', 'qux');
 
-        $expected = array($breadcrumbA, $breadcrumbB, $breadcrumbC);
+        $expected = [$breadcrumbA, $breadcrumbB, $breadcrumbC];
 
         $collection = new BreadcrumbCollection();
         $collection->addBreadcrumb($breadcrumbA)->addBreadcrumb($breadcrumbC);
@@ -50,13 +51,13 @@ class BreadcrumbCollectionTest extends \PHPUnit_Framework_TestCase
     /**
      * Test adding of breadcrumb after another known one
      */
-    public function testAddAfterCrumb()
+    public function testAddAfterCrumb(): void
     {
         $breadcrumbA = new Breadcrumb('foo', 'bar');
         $breadcrumbB = new Breadcrumb('bar', 'baz');
         $breadcrumbC = new Breadcrumb('baz', 'qux');
 
-        $expected = array($breadcrumbA, $breadcrumbC, $breadcrumbB);
+        $expected = [$breadcrumbA, $breadcrumbC, $breadcrumbB];
 
         $collection = new BreadcrumbCollection();
         $collection->addBreadcrumb($breadcrumbA)->addBreadcrumb($breadcrumbC);
@@ -69,13 +70,13 @@ class BreadcrumbCollectionTest extends \PHPUnit_Framework_TestCase
     /**
      * Test adding of breadcrumb to the very start
      */
-    public function testAddBreadcrumbToStart()
+    public function testAddBreadcrumbToStart(): void
     {
         $breadcrumbA = new Breadcrumb('foo', 'bar');
         $breadcrumbB = new Breadcrumb('bar', 'baz');
         $breadcrumbC = new Breadcrumb('baz', 'qux');
 
-        $expected = array($breadcrumbC, $breadcrumbA, $breadcrumbB);
+        $expected = [$breadcrumbC, $breadcrumbA, $breadcrumbB];
 
         $collection = new BreadcrumbCollection();
         $collection->addBreadcrumb($breadcrumbA)->addBreadcrumb($breadcrumbB);
@@ -88,7 +89,7 @@ class BreadcrumbCollectionTest extends \PHPUnit_Framework_TestCase
     /**
      * Test getting a breadcrumb by a known route
      */
-    public function testGetBreadcrumbByRoute()
+    public function testGetBreadcrumbByRoute(): void
     {
         $breadcrumbA = new Breadcrumb('foo', 'bar');
         $breadcrumbB = new Breadcrumb('bar', 'baz');
@@ -104,14 +105,14 @@ class BreadcrumbCollectionTest extends \PHPUnit_Framework_TestCase
     /**
      * Test throwing of exception if a breadcrumb doesn't exist
      */
-    public function testAddAfterBreadcrumbExceptionException()
+    public function testAddAfterBreadcrumbExceptionException(): void
     {
         $breadcrumbA = new Breadcrumb('foo', 'bar');
         $breadcrumbB = new Breadcrumb('bar', 'baz');
 
         $collection = new BreadcrumbCollection();
 
-        $this->setExpectedException('\InvalidArgumentException');
+        $this->expectException(\InvalidArgumentException::class);
 
         $collection->addBreadcrumbAfterCrumb($breadcrumbA, $breadcrumbB);
     }

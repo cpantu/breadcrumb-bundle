@@ -2,60 +2,53 @@
 
 namespace Thormeier\BreadcrumbBundle\Tests\Provider;
 
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\ParameterBag;
-use Symfony\Component\HttpKernel\Event\GetResponseEvent;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Thormeier\BreadcrumbBundle\Provider\BreadcrumbProvider;
 
 /**
  * Provider class test
  */
-class BreadcrumbProviderTest extends \PHPUnit_Framework_TestCase
+class BreadcrumbProviderTest extends TestCase
 {
     const MODEL_CLASS = 'Thormeier\BreadcrumbBundle\Model\Breadcrumb';
 
     const COLLECTION_CLASS = 'Thormeier\BreadcrumbBundle\Model\BreadcrumbCollection';
 
-    /**
-     * @var GetResponseEvent
-     */
-    private $responseEvent;
+    private RequestEvent $responseEvent;
 
-    /**
-     * @var \PHPUnit_Framework_MockObject_MockObject|ParameterBag
-     */
-    private $requestAttributes;
+    private ParameterBag $requestAttributes;
 
-    /**
-     * @var BreadcrumbProvider
-     */
-    private $provider;
+    private BreadcrumbProvider $provider;
 
     /**
      * Set up the whole
      */
-    public function setUp()
+    protected function setUp(): void
     {
-        $this->requestAttributes= $this->getMockBuilder('Symfony\Component\HttpFoundation\ParameterBag')
+        $this->requestAttributes = $this->getMockBuilder(ParameterBag::class)
             ->disableOriginalConstructor()
-            ->setMethods(array('get'))
+            ->onlyMethods(['get'])
             ->getMock();
 
-        $request = $this->getMockBuilder('\Symfony\Component\HttpFoundation\Request')
+        $request = $this->getMockBuilder(Request::class)
             ->disableOriginalConstructor()
             ->getMock();
         $request->attributes = $this->requestAttributes;
 
-        $this->responseEvent = $this->getMockBuilder('\Symfony\Component\HttpKernel\Event\GetResponseEvent')
+        $this->responseEvent = $this->getMockBuilder(RequestEvent::class)
             ->disableOriginalConstructor()
-            ->setMethods(array('getRequestType', 'getRequest'))
+            ->onlyMethods(['getRequestType', 'getRequest'])
             ->getMock();
         $this->responseEvent->expects($this->any())
             ->method('getRequest')
-            ->will($this->returnValue($request));
+            ->willReturn($request);
         $this->responseEvent->expects($this->any())
             ->method('getRequestType')
-            ->will($this->returnValue(HttpKernelInterface::MASTER_REQUEST));
+            ->willReturn(HttpKernelInterface::MAIN_REQUEST);
 
         $this->provider = new BreadcrumbProvider(self::MODEL_CLASS, self::COLLECTION_CLASS);
     }
@@ -63,11 +56,11 @@ class BreadcrumbProviderTest extends \PHPUnit_Framework_TestCase
     /**
      * Tests the outcome if there are no configured breadcrumbs
      */
-    public function testGetNoConfiguredBreadcrumbs()
+    public function testGetNoConfiguredBreadcrumbs(): void
     {
         $this->requestAttributes->expects($this->any())
             ->method('get')
-            ->will($this->returnValue(array()));
+            ->willReturn([]);
 
         $this->provider->onKernelRequest($this->responseEvent);
         $result = $this->provider->getBreadcrumbs();
@@ -79,19 +72,19 @@ class BreadcrumbProviderTest extends \PHPUnit_Framework_TestCase
     /**
      * Test the generation of a single breadcrumb
      */
-    public function testSingleBreadcrumb()
+    public function testSingleBreadcrumb(): void
     {
         $label = 'foo';
         $route = 'bar';
 
         $this->requestAttributes->expects($this->any())
             ->method('get')
-            ->will($this->returnValue(array(
-                array(
+            ->willReturn([
+                [
                     'label' => $label,
                     'route' => $route,
-                ),
-            )));
+                ],
+            ]);
 
         $this->provider->onKernelRequest($this->responseEvent);
         $result = $this->provider->getBreadcrumbs();
@@ -105,7 +98,7 @@ class BreadcrumbProviderTest extends \PHPUnit_Framework_TestCase
     /**
      * Test the generation of multiple breadcrumbs
      */
-    public function testMultipleBreadcrumbs()
+    public function testMultipleBreadcrumbs(): void
     {
         $label1 = 'foo';
         $route1 = 'bar';
@@ -114,16 +107,16 @@ class BreadcrumbProviderTest extends \PHPUnit_Framework_TestCase
 
         $this->requestAttributes->expects($this->any())
             ->method('get')
-            ->will($this->returnValue(array(
-                array(
+            ->willReturn([
+                [
                     'label' => $label1,
                     'route' => $route1,
-                ),
-                array(
+                ],
+                [
                     'label' => $label2,
                     'route' => $route2,
-                ),
-            )));
+                ],
+            ]);
 
         $this->provider->onKernelRequest($this->responseEvent);
         $result = $this->provider->getBreadcrumbs();

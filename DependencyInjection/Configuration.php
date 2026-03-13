@@ -12,14 +12,10 @@ use Symfony\Component\Config\Definition\ConfigurationInterface;
  */
 class Configuration implements ConfigurationInterface
 {
-    /**
-     * @return TreeBuilder
-     */
-    public function getConfigTreeBuilder()
+    public function getConfigTreeBuilder(): TreeBuilder
     {
         $treeBuilder = new TreeBuilder('thormeier_breadcrumb');
-        $rootNode = method_exists(TreeBuilder::class, 'getRootNode')
-            ? $treeBuilder->getRootNode() : $treeBuilder->root('thormeier_breadcrumb');
+        $rootNode = $treeBuilder->getRootNode();
 
         $rootNode
             ->children()
