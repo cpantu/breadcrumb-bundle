@@ -1,17 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- http://www.phpunit.de/manual/current/en/appendixes.configuration.html -->
-<phpunit
-        backupGlobals               = "false"
-        backupStaticAttributes      = "false"
-        colors                      = "true"
-        convertErrorsToExceptions   = "true"
-        convertNoticesToExceptions  = "true"
-        convertWarningsToExceptions = "true"
-        processIsolation            = "false"
-        stopOnFailure               = "false"
-        syntaxCheck                 = "false"
-        bootstrap                   = "vendor/autoload.php" >
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.5/phpunit.xsd"
+         backupGlobals="false"
+         colors="true"
+         processIsolation="false"
+         stopOnFailure="false"
+         bootstrap="vendor/autoload.php"
+         cacheDirectory=".phpunit.cache">
 
     <testsuites>
         <testsuite name="Unit Tests">
@@ -19,15 +15,15 @@
         </testsuite>
     </testsuites>
 
-    <filter>
-        <whitelist>
+    <source>
+        <include>
             <directory>.</directory>
-            <exclude>
-                <directory>./Tests</directory>
-                <directory>./Resources</directory>
-                <directory>./vendor</directory>
-                <directory>./DependencyInjection</directory>
-            </exclude>
-        </whitelist>
-    </filter>
+        </include>
+        <exclude>
+            <directory>./Tests</directory>
+            <directory>./Resources</directory>
+            <directory>./vendor</directory>
+            <directory>./DependencyInjection</directory>
+        </exclude>
+    </source>
 </phpunit>
